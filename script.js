@@ -151,7 +151,27 @@ class MainMenu extends Phaser.Scene {
             loop: true,
             volume: 0.2
         });
-    });
+            });
+            this.time.addEvent({
+    delay: 2000,
+    loop: true,
+    callback: () => {
+        this.bombs.children.iterate(bomb => {
+            if (!bomb || !bomb.body) return;
+
+            // detect corner trapping
+            if (bomb.x < 40 || bomb.x > 760) {
+                bomb.setVelocityX(-bomb.body.velocity.x);
+            }
+
+            // prevent long flat ground sliding
+            if (bomb.body.blocked.down && Math.abs(bomb.body.velocity.x) < 80) {
+                bomb.setVelocityX(Phaser.Math.Between(-200, 200));
+                bomb.setVelocityY(-250);
+            }
+        });
+    }
+});
     }
 }
 
@@ -315,9 +335,9 @@ class GamePlay extends Phaser.Scene {
         volume: 1
         });
        this.input.once('pointerdown', () => {
-    this.sound.context.resume();
+       this.sound.context.resume();
 
-});
+               });
         this.jumpSound= this.sound.add('jumpSound');
 
         if (!this.anims.get('left')) {
@@ -339,7 +359,12 @@ class GamePlay extends Phaser.Scene {
         });
 
         this.bombs = this.physics.add.group();
+        this.physics.world.on('worldbounds', (body) => {
+            const obj = body.gameObject;
+            if (!obj || obj.texture?.key !== 'bomb') return;
 
+            this.forceBombBounce(obj);
+        });
         let scoreBg = this.add.graphics();
         scoreBg.fillStyle(0x000000, 0.5);
         scoreBg.fillRect(10, 10, 300, 100);
@@ -350,7 +375,13 @@ class GamePlay extends Phaser.Scene {
 
         this.physics.add.collider(this.player,  this.bombs, this.hitBomb, null, this);
         this.physics.add.collider(this.player2, this.bombs, this.hitBomb, null, this);
+        this.physics.world.on('collide', (obj1, obj2) => {
+            const bomb = obj1.texture?.key === 'bomb' ? obj1 : obj2;
 
+            if (bomb && bomb.body) {
+                bomb.setVelocityX(bomb.body.velocity.x + Phaser.Math.Between(-25, 25));
+            }
+        });
         this.buildLayout(this.layoutIndex);
     }
 
@@ -387,7 +418,9 @@ class GamePlay extends Phaser.Scene {
 
         this.layoutColliders.push(
             this.physics.add.collider([this.player, this.player2], this.platforms),
-            this.physics.add.collider(this.bombs, this.platforms),
+            this.physics.add.collider(this.bombs, this.platforms, (bomb, platform) => {
+    this.forceBombBounce(bomb);
+}),
             this.physics.add.overlap(this.player,  this.p1Stars, this.collectStar, null, this),
             this.physics.add.overlap(this.player,  this.p2Stars, this.collectStar, null, this),
             this.physics.add.overlap(this.player2, this.p1Stars, this.collectStar, null, this),
@@ -432,30 +465,112 @@ class GamePlay extends Phaser.Scene {
             }
         }
 
-        const stuckBombs = [];
-        this.bombs.children.iterate(bomb => {
-            if (!bomb || !bomb.body || !bomb.active) return;
-            const onGround = bomb.body.touching.down && bomb.y > 600;
-            if (onGround) {
-                const stopped = Math.abs(bomb.body.velocity.x) < 30 && Math.abs(bomb.body.velocity.y) < 50;
-                if (stopped) stuckBombs.push(bomb);
-            } else {
-                bomb.setBounceY(0.95);
-            }
-        });
+        // const stuckBombs = [];
+        // this.bombs.children.iterate(bomb => {
+        //     if (!bomb || !bomb.body || !bomb.active) return;
+        //     const onGround = bomb.body.touching.down && bomb.y > 600;
+        //     if (onGround) {
+        //         const stopped = Math.abs(bomb.body.velocity.x) < 30 && Math.abs(bomb.body.velocity.y) < 50;
+        //         if (stopped) stuckBombs.push(bomb);
+        //     } else {
+        //         bomb.setBounceY(0.95);
+        //     }
+        // });
 
-        stuckBombs.forEach(bomb => {
-            const respawnX = Phaser.Math.Between(20, 780);
-            bomb.destroy();
-            const fresh = this.bombs.create(respawnX, 16, 'bomb');
-            fresh.setBounce(0.95);
-            fresh.setCollideWorldBounds(true);
-            fresh.setVelocity(Phaser.Math.Between(-150, 150), 0);
-            fresh.allowGravity = true;
-            this.sound.play('duckSound');
-        });
+        // stuckBombs.forEach(bomb => {
+        //     const respawnX = Phaser.Math.Between(20, 780);
+        //     bomb.destroy();
+        //     const fresh = this.bombs.create(respawnX, 16, 'bomb');
+        //     fresh.setBounce(0.95);
+        //     fresh.setCollideWorldBounds(true);
+        //     fresh.setVelocity(Phaser.Math.Between(-150, 150), 0);
+        //     fresh.allowGravity = true;
+        //     this.sound.play('duckSound');
+        // });
+        this.bombs.children.iterate(bomb => {
+    if (!bomb || !bomb.body) return;
+
+    const vx = bomb.body.velocity.x;
+    const vy = bomb.body.velocity.y;
+
+    const speed = Math.abs(vx) + Math.abs(vy);
+
+    // init tracker
+    if (!bomb._lastActive) {
+        bomb._lastActive = this.time.now;
     }
 
+    // update "active movement time"
+    if (speed > 20) {
+        bomb._lastActive = this.time.now;
+    }
+
+    const stuckTooLong = (this.time.now - bomb._lastActive) > 2500;
+
+    // HARD FIX: if it's basically sliding on ground → re-energize immediately
+    const onGroundAndSlow =
+        bomb.body.blocked.down &&
+        Math.abs(vx) < 60;
+
+    if (stuckTooLong || onGroundAndSlow) {
+        bomb.setPosition(Phaser.Math.Between(50, 750), 0);
+
+        bomb.setVelocity(
+            Phaser.Math.Between(-220, 220),
+            Phaser.Math.Between(-300, -180)
+        );
+
+        bomb.setBounce(1, 0.2);
+        bomb.setDrag(0);
+        bomb.setFriction(0);
+
+        bomb._lastActive = this.time.now;
+
+        this.sound.play('duckSound');
+    }
+});
+    }
+  forceBombBounce(bomb) {
+    if (!bomb || !bomb.body) return;
+
+    const body = bomb.body;
+
+    // current velocity
+    let vx = body.velocity.x;
+    let vy = body.velocity.y;
+
+    // if hitting ground/platform, always reverse Y
+    if (body.blocked.down) {
+        vy = -Math.abs(vy || 200);
+    }
+
+    // if hitting walls, flip X
+    if (body.blocked.left) {
+        vx = Math.abs(vx || 200);
+    } else if (body.blocked.right) {
+        vx = -Math.abs(vx || 200);
+    }
+
+    // add slight randomness so it doesn't lock into loops
+    vx += Phaser.Math.Between(-40, 40);
+
+    // clamp so it doesn't drift into slow corner traps
+    const minSpeed = 180;
+
+    if (Math.abs(vx) < minSpeed) {
+        vx = vx < 0 ? -minSpeed : minSpeed;
+    }
+
+    if (vy > -120) {
+        vy = -Phaser.Math.Between(180, 320);
+    }
+
+    bomb.setVelocity(vx, vy);
+
+    bomb.setBounce(1, 0.2);
+    bomb.setFriction(0);
+    bomb.setDrag(0);
+}
     collectStar(play, star) {
         star.disableBody(true, true);
 
@@ -484,10 +599,20 @@ class GamePlay extends Phaser.Scene {
                 this.buildLayout(this.layoutIndex);
 
                 const bomb = this.bombs.create(bombX, 16, 'bomb');
-                bomb.setBounce(0.95);
+
+                bomb.setBounce(1, 0.2);
+                bomb.setFriction(0, 0);
+                bomb.setDrag(0);
+                bomb.setMaxVelocity(300, 600);
+
                 bomb.setCollideWorldBounds(true);
-                bomb.setVelocity(Phaser.Math.Between(-150, 150), 0);
                 bomb.allowGravity = true;
+
+                bomb.setVelocity(
+                    Phaser.Math.Between(-180, 180),
+                    Phaser.Math.Between(-250, -150)
+                );
+
                 this.sound.play('duckSound');
                 this.layoutTransitionPending = false;
             });
