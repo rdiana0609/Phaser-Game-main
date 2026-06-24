@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duck Invasion — Arcade</title>
+   <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<div class="room">
+  <div class="floor"></div>
+  <div class="flecks">
+    <span style="left:18%; bottom:10%; animation-delay:0s;"></span>
+    <span style="left:32%; bottom:5%; animation-delay:2s;"></span>
+    <span style="left:64%; bottom:14%; animation-delay:4s;"></span>
+    <span style="left:78%; bottom:8%; animation-delay:1s;"></span>
+    <span style="left:50%; bottom:20%; animation-delay:5.5s;"></span>
+    <span style="left:8%; bottom:24%; animation-delay:3s;"></span>
+  </div>
+
+  <div class="stage">
+       <div class="marquee-wrap">
+      <div class="gem">
+        <svg viewBox="0 -1 16 17" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+          <!-- helmet glass bubble -->
+          <rect x="3" y="1" width="9" height="9" fill="#bdeeff" opacity="0.55"/>
+          <rect x="4" y="0" width="7" height="1" fill="#cfeeff" opacity="0.7"/>
+          <!-- duck body -->
+          <rect x="4" y="6" width="7" height="2" fill="#f4c542"/>
+          <rect x="3" y="7" width="9" height="3" fill="#f4c542"/>
+          <rect x="4" y="10" width="7" height="1" fill="#f4c542"/>
+          <!-- duck head -->
+          <rect x="7" y="3" width="5" height="2" fill="#f4c542"/>
+          <rect x="6" y="4" width="6" height="3" fill="#f4c542"/>
+          <!-- shading -->
+          <rect x="3" y="9" width="9" height="1" fill="#c98f1f"/>
+          <rect x="6" y="6" width="5" height="1" fill="#c98f1f" opacity="0.6"/>
+          <!-- eye -->
+          <rect x="10" y="4" width="1" height="1" fill="#0a0c14"/>
+          <!-- beak -->
+          <rect x="12" y="4" width="2" height="1" fill="#e8935a"/>
+          <rect x="12" y="5" width="3" height="1" fill="#e8935a"/>
+          <rect x="12" y="6" width="2" height="1" fill="#b5662f"/>
+          <!-- helmet ring -->
+          <rect x="3" y="9" width="9" height="1" fill="#8a90a6"/>
+          <rect x="2" y="8" width="1" height="2" fill="#8a90a6"/>
+          <rect x="12" y="8" width="1" height="2" fill="#8a90a6"/>
+          <!-- antenna -->
+          <rect x="8" y="0" width="1" height="2" fill="#8a90a6"/>
+          <rect x="8" y="-1" width="1" height="1" fill="#4ecca3"/>
+          <!-- glass shine -->
+          <rect x="4" y="2" width="1" height="3" fill="#ffffff" opacity="0.6"/>
+        </svg>
+      </div>
+      <div class="crown">
+       
+        <div class="marquee-screen">
+          <div class="marquee-title">DUCK INVASION</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CABINET BODY -->
+    <div class="cabinet-body">
+
+      
+
+      <div class="bezel">
+        <div class="screen">
+          <div class="glow"></div>
+          <div id="game-slot"></div>
+          <div class="scanlines"></div>
+          <div class="vignette"></div>
+        </div>
+      </div>
+
+      <div class="plate">© DUCK INVASION ARCADE CO.</div>
+
+      <div class="control-panel">
+        <div class="joystick">
+          <div class="stick"></div>
+          <div class="ball"></div>
+          <div class="base"></div>
+        </div>
+        <div class="buttons">
+          <div class="btn y"></div>
+          <div class="btn w"></div>
+          <div class="btn g"></div>
+        </div>
+      </div>
+
+      <div class="kickplate"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="credit">DUCK INVASION © 2026</div>
+
+</body>
+</html>
