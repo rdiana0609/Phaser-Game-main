@@ -133,7 +133,7 @@ class MainMenu extends Phaser.Scene {
 
         this.cameras.main.setBackgroundColor(0x9d6aa1);
         this.add.text(this.cameras.main.centerX, 200, 'Collect points and dodge ducks!', { fontSize: '40px', fill: '#ffffff' }).setOrigin(0.5);
-        const playButton = this.add.text(this.cameras.main.centerX, 300, 'Press ENTER to Start', { fontSize: '32px', fill: '#ffffff' }).setOrigin(0.5);
+        const playButton = this.add.text(this.cameras.main.centerX, 300, 'Click PLAY to Start', { fontSize: '32px', fill: '#ffffff' }).setOrigin(0.5);
 
         this.sys.game.canvas.setAttribute('tabindex', '0');
         this.sys.game.canvas.focus();
